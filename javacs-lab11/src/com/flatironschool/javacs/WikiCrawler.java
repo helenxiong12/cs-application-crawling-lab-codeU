@@ -54,8 +54,31 @@ public class WikiCrawler {
 	 * @throws IOException
 	 */
 	public String crawl(boolean testing) throws IOException {
-        // FILL THIS IN!
-		return null;
+		if (queue.isEmpty()) {
+            return null;
+        }
+    	/*
+			Choose and remove a URL from the queue in FIFO order.
+			Read the contents of the page using WikiFetcher.readWikipedia, which reads cached copies of pages we have included in this repository for testing purposes (to avoid problems if the Wikipedia version changes).
+			It should index pages regardless of whether they are already indexed.
+			It should find all the internal links on the page and add them to the queue in the order they appear. "Internal links" are links to other Wikipedia pages.
+			And it should return the URL of the page it indexed.
+    	*/
+        String url = queue.poll();
+System.out.println("Crawling " + url);
+		Elements paragraphs;
+		if (testing == false && index.isIndexed(url)) {
+			return null;
+		}
+		if (testing) {
+			 System.out.println(url);
+			paragraphs = wf.readWikipedia(url);
+		} else {
+            paragraphs = wf.fetchWikipedia(url);
+        }
+		index.indexPage(url, paragraphs);
+		queueInternalLinks(paragraphs);
+		return url;
 	}
 	
 	/**
@@ -65,7 +88,22 @@ public class WikiCrawler {
 	 */
 	// NOTE: absence of access level modifier means package-level
 	void queueInternalLinks(Elements paragraphs) {
-        // FILL THIS IN!
+        for (Element paragraph : paragraphs) {
+        	queueInternalLinks(paragraph);
+        }
+	}
+
+	private void queueInternalLinks(Element paragraph) {
+		Elements potential_links = paragraph.select("a[href]");
+		for (Element potential_link : potential_links) {
+			String potentialURL = potential_link.attr("href");
+				//	System.out.println("potential " + potentialURL);
+			if (potentialURL.startsWith("/wiki/")) {
+				String realURL = "http://en.wikipedia.org" + potentialURL; //potential_link.attr("abs:href");
+				//	System.out.println("real " + realURL);
+				queue.offer(realURL);
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
