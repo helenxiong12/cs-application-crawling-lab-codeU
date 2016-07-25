@@ -65,15 +65,18 @@ public class WikiCrawler {
 			And it should return the URL of the page it indexed.
     	*/
         String url = queue.poll();
-System.out.println("Crawling " + url);
+		// System.out.println("Crawling " + url);
 		Elements paragraphs;
 		if (testing == false && index.isIndexed(url)) {
 			return null;
 		}
 		if (testing) {
-			 System.out.println(url);
+			// System.out.print("reading: ");
+			// System.out.println(url);
 			paragraphs = wf.readWikipedia(url);
 		} else {
+			// System.out.print("fetching: ");
+			// System.out.println(url);
             paragraphs = wf.fetchWikipedia(url);
         }
 		index.indexPage(url, paragraphs);
@@ -94,13 +97,14 @@ System.out.println("Crawling " + url);
 	}
 
 	private void queueInternalLinks(Element paragraph) {
-		Elements potential_links = paragraph.select("a[href]");
-		for (Element potential_link : potential_links) {
-			String potentialURL = potential_link.attr("href");
-				//	System.out.println("potential " + potentialURL);
-			if (potentialURL.startsWith("/wiki/")) {
-				String realURL = "http://en.wikipedia.org" + potentialURL; //potential_link.attr("abs:href");
-				//	System.out.println("real " + realURL);
+		Elements elements = paragraph.select("a[href]");
+		for (Element e : elements) {
+			String relURL = e.attr("href");
+			// System.out.println("relURL = " + relURL);
+			if (relURL.startsWith("/wiki/")) {
+				// String realURL = e.attr("abs:href");
+				String realURL = "https://en.wikipedia.org" + relURL;
+				// System.out.println("absURL = " + realURL);
 				queue.offer(realURL);
 			}
 		}
@@ -124,7 +128,7 @@ System.out.println("Crawling " + url);
 			res = wc.crawl(false);
 
             // REMOVE THIS BREAK STATEMENT WHEN crawl() IS WORKING
-            break;
+            //break;
 		} while (res == null);
 		
 		Map<String, Integer> map = index.getCounts("the");
